@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Groww Clone</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="login-gate">
+    <h2>Enter Password to Continue</h2>
+    <input type="password" id="password" placeholder="Enter password"/>
+    <button onclick="checkPassword()">Enter</button>
+    <p id="error-msg"></p>
+  </div>
+
+  <div id="main-app" style="display:none;">
+    <header>
+      <h1>My Groww Clone</h1>
+      <button onclick="toggleTheme()">Change Background</button>
+      <a href="demat.html">Open Demat Account</a>
+    </header>
+
+    <section class="stocks-container" id="stocks">
+      <!-- Stock cards will be added here -->
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
