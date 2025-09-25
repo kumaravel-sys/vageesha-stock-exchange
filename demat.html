@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Demat Account — School Demo (with Admin)</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* contained styles */
+    :root { --accent:#10b981; --accent-2:#2563eb; --card-bg:#fff; --muted:#6b7280; }
+    body { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin:0; background:#f6f8fb; color:#0b1220; }
+    .container { max-width:1000px; margin:2rem auto; padding:1rem; }
+    header { display:flex; justify-content:space-between; align-items:center; background:#0f172a; color:#fff; padding:1rem; border-radius:8px; }
+    .card { background:var(--card-bg); padding:1.25rem; border-radius:8px; box-shadow:0 6px 18px rgba(10,10,20,0.06); margin-top:1rem; }
+    label { display:block; margin-top:.75rem; font-weight:600; }
+    input[type=text], input[type=email], input[type=password] {
+      width:100%; padding:.55rem; margin-top:.35rem; border-radius:6px; border:1px solid #e6e9ef; box-sizing:border-box;
+    }
+    button { margin-top:1rem; padding:.55rem .9rem; border-radius:6px; background:var(--accent); color:white; border:0; cursor:pointer; font-weight:700; }
+    button.secondary { background:var(--accent-2); }
+    .small { font-size:.9rem; color:var(--muted); margin-top:.5rem; }
+    .success { background:#ecfdf5; border-left:4px solid var(--accent); padding:.6rem; margin-top:.8rem; border-radius:6px; }
+    .danger { background:#fff1f2; border-left:4px solid #ef4444; padding:.6rem; margin-top:.8rem; border-radius:6px; }
+    .row { display:flex; gap:1rem; align-items:center; }
+    pre { background:#0b1220; color:#e6f4ea; padding:.4rem; border-radius:6px; overflow:auto; display:inline-block; }
+    table { width:100%; border-collapse:collapse; margin-top:.75rem; }
+    th, td { padding:.5rem .6rem; text-align:left; border-bottom:1px solid #eef2f6; font-size:.95rem; }
+    th { background:#f1f5f9; font-weight:700; }
+    .muted { color:var(--muted); font-size:.9rem; }
+    .actions { display:flex; gap:.5rem; }
+    .pill { padding:.25rem .5rem; border-radius:999px; background:#eef2ff; font-weight:700; color:#1e3a8a; }
+    .admin-panel { display:none; margin-top:1rem; }
+    .danger-btn { background:#ef4444; color:white; }
+    .link { color:#2563eb; text-decoration:underline; cursor:pointer; background:none; border:0; padding:0; font-size:0.95rem; }
+    @media (max-width:720px){ .row{flex-direction:column;align-items:stretch} table{font-size:.85rem} }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Demat Account — School Demo</h1>
+      <nav>
+        <a href="index.html" style="color:#fff; text-decoration:none;">← Back to Stocks</a>
+      </nav>
+    </header>
+
+    <!-- Create account -->
+    <div class="card" id="create-card">
+      <h2>Create a Demat Account</h2>
+      <p class="small">Enter basic details. We will generate a Demat Account ID (contains unicode) and a password for you.</p>
+
+      <label for="name">Full Name</label>
+      <input id="name" type="text" placeholder="e.g., Asha Kumar" required />
+
+      <label for="email">Email</label>
+      <input id="email" type="email" placeholder="your@email.school" required />
+
+      <div style="display:flex; gap:.5rem; margin-top:.75rem;">
+        <button id="create-btn">Create Account</button>
+        <button id="create-custom-pass" class="secondary">Create + Choose Password</button>
+      </div>
+
+      <p class="muted">Note: password will be shown once — please copy or note it down.</p>
+
+      <div id="create-result" style="display:none;"></div>
+    </div>
+
+    <!-- Login -->
+    <div class="card" id="login-card" style="margin-top:1.25rem;">
+      <h2>Login to Existing Demat</h2>
+
+      <label for="login-id">Demat Account ID</label>
+      <input id="login-id" type="text" placeholder="Paste your Demat Account ID" />
+
+      <label for="login-pass">Password</label>
+      <input id="login-pass" type="password" placeholder="Password" />
+
+      <button id="login-btn">Open Demat Account</button>
+
+      <div id="login-result" style="display:none;"></div>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="card" id="dashboard-card" style="display:none;">
+      <h2>Demat Dashboard</h2>
+      <div id="account-details"></div>
+      <div style="margin-top:1rem;">
+        <button id="logout-btn" class="secondary">Logout</button>
+      </div>
+    </div>
+
+    <!-- Admin login -->
+    <div class="card" id="admin-login-card" style="margin-top:1.25rem;">
+      <h2>Admin Access</h2>
+      <p class="small">Admin can view/export/delete all demo accounts. This is client-side demo only.</p>
+
+      <label for="admin-pass">Admin Password</label>
+      <input id="admin-pass" type="password" placeholder="adminvsesvv#" />
+
+      <div style="display:flex; gap:.5rem; margin-top:.75rem;">
+        <button id="admin-login-btn">Login as Admin</button>
+        <button id="admin-logout-btn" style="display:none;" class="secondary">Logout Admin</button>
+      </div>
+
+      <div id="admin-msg" style="display:none;"></div>
+
+      <div class="admin-panel card" id="admin-panel">
+        <h3>All Accounts</h3>
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem;">
+          <div class="muted">Below are all stored demo accounts (localStorage).</div>
+          <div class="row" style="margin-left:auto;">
+            <button id="export-csv" class="secondary">Export CSV</button>
+            <button id="delete-all" class="danger-btn">Delete All</button>
+          </div>
+        </div>
+
+        <div id="accounts-table-wrap" style="margin-top:.75rem;">
+          <table id="accounts-table" aria-live="polite">
+            <thead>
+              <tr><th>#</th><th>Name</th><th>Email</th><th>Demat ID</th><th>Password</th><th>Created</th><th>Actions</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:1.25rem;">
+      <h3>Why Unicode in ID?</h3>
+      <p class="small">Including a couple of Unicode characters makes the ID look unique and fun for a school demo (e.g., ✦AK-345678-AB123). This is purely cosmetic.</p>
+      <p class="small"><strong>Security note:</strong> This demo stores accounts in browser localStorage and shows passwords in plaintext for demo/testing. Do not use for real money/production.</p>
+    </div>
+
+  </div>
+
+<script>
+/* -------------------------
+   Configuration (change me)
+   ------------------------- */
+const ADMIN_PASSWORD = 'adminSchool2025'; // CHANGE this to your secure admin password before publishing
+const STORAGE_KEY = 'school_demat_accounts_v1';
+
+/* -------------------------
+   Utilities
+   ------------------------- */
+function rndInt(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function uid(len=8){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let s=''; for(let i=0;i<len;i++) s += chars.charAt(Math.floor(Math.random()*chars.length));
+  return s;
+}
+function genPassword() {
+  const parts = [
+    uid(4),
+    String.fromCharCode(33 + rndInt(0, 14)),
+    rndInt(10,99).toString(),
+    uid(2).toLowerCase()
+  ];
+  return parts.join('');
+}
+function genDematId(name){
+  const marks = ['ⓓ','✦','★','✪','✺','✧'];
+  const mark = marks[Math.floor(Math.random()*marks.length)];
+  const short = uid(5);
+  const ts = Date.now().toString().slice(-6);
+  const initials = (name||'XX').split(' ').map(p=>p[0]||'').slice(0,2).join('').toUpperCase() || 'XX';
+  return `${mark}${initials}-${ts}-${short}`;
+}
+function nowIso(){ return new Date().toISOString(); }
+
+/* -------------------------
+   Storage helpers
+   ------------------------- */
+function loadAccounts(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch(e){ return []; }
+}
+function saveAccounts(arr){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+}
+
+/* -------------------------
+   DOM refs
+   ------------------------- */
+const createBtn = document.getElementById('create-btn');
+const createCustomBtn = document.getElementById('create-custom-pass');
+const createResult = document.getElementById('create-result');
+const nameInput = document.getElementById('name');
+const emailInput = document.getElementById('email');
+
+const loginBtn = document.getElementById('login-btn');
+const loginResult = document.getElementById('login-result');
+const loginId = document.getElementById('login-id');
+const loginPass = document.getElementById('login-pass');
+
+const dashboardCard = document.getElementById('dashboard-card');
+const accountDetailsDiv = document.getElementById('account-details');
+const logoutBtn = document.getElementById('logout-btn');
+
+const adminPassInput = document.getElementById('admin-pass');
+const adminLoginBtn = document.getElementById('admin-login-btn');
+const adminLogoutBtn = document.getElementById('admin-logout-btn');
+const adminPanel = document.getElementById('admin-panel');
+const adminMsg = document.getElementById('admin-msg');
+const accountsTableBody = document.querySelector('#accounts-table tbody');
+const exportCsvBtn = document.getElementById('export-csv');
+const deleteAllBtn = document.getElementById('delete-all');
+
+/* -------------------------
+   Account creation
+   ------------------------- */
+createBtn.addEventListener('click', (ev)=>{
+  ev.preventDefault();
+  const name = nameInput.value.trim();
+  const email = emailInput.value.trim();
+  if(!name || !email){ showCreateMessage('Please enter name & email.', 'danger'); return; }
+  const password = genPassword();
+  createAndStore(name, email, password);
+});
+
+createCustomBtn.addEventListener('click', (ev)=>{
+  ev.preventDefault();
+  const name = nameInput.value.trim();
+  const email = emailInput.value.trim();
+  if(!name || !email){ showCreateMessage('Please enter name & email.', 'danger'); return; }
+  const custom = prompt('Enter a password you want (min 6 chars). This will be stored locally in the browser:');
+  if(!custom || custom.length < 6){ showCreateMessage('Password too short or cancelled.', 'danger'); return; }
+  createAndStore(name, email, custom);
+});
+
+function createAndStore(name, email, password){
+  const dematId = genDematId(name);
+  const account = {
+    id: dematId,
+    name,
+    email,
+    password,
+    createdAt: nowIso()
+  };
+  const accounts = loadAccounts();
+  accounts.push(account);
+  saveAccounts(accounts);
+  showCreateMessage(`
+    <div class="success">
+      <strong>Account created ✅</strong>
+      <p><strong>Demat Account ID:</strong> <code>${dematId}</code></p>
+      <p><strong>Password (copy now):</strong> <pre style="display:inline-block; margin:0; padding:.25rem .5rem; border-radius:4px; background:#0b1220; color:#e6f4ea;">${password}</pre></p>
+      <p class="muted">This password will be shown only once here. Please copy/save it.</p>
+    </div>
+  `, 'success');
+
+  // autofill login inputs to ease testing
+  loginId.value = dematId;
+  loginPass.value = password;
+}
+
+function showCreateMessage(html, type='success'){
+  createResult.style.display = 'block';
+  createResult.innerHTML = html;
+}
+
+/* -------------------------
+   Login
+   ------------------------- */
+loginBtn.addEventListener('click', (ev)=>{
+  ev.preventDefault();
+  const id = loginId.value.trim();
+  const pass = loginPass.value;
+  if(!id || !pass){ showLoginMessage('Enter ID and password.', 'danger'); return; }
+  const accounts = loadAccounts();
+  const found = accounts.find(a => a.id === id);
+  if(!found){ showLoginMessage('No account found with that ID.', 'danger'); return; }
+  if(found.password !== pass){ showLoginMessage('Incorrect password.', 'danger'); return; }
+  openDashboard(found);
+  showLoginMessage('', '');
+});
+
+function showLoginMessage(html, type='success'){
+  loginResult.style.display = html? 'block' : 'none';
+  if(html) loginResult.innerHTML = `<div class="${type==='danger'?'danger':'success'}">${html}</div>`;
+}
+
+/* -------------------------
+   Dashboard functions
+   ------------------------- */
+function openDashboard(account){
+  document.getElementById('create-card').style.display = 'none';
+  document.getElementById('login-card').style.display = 'none';
+  dashboardCard.style.display = 'block';
+  accountDetailsDiv.innerHTML = `
+    <p><strong>Name:</strong> ${escapeHtml(account.name)}</p>
+    <p><strong>Email:</strong> ${escapeHtml(account.email)}</p>
+    <p><strong>Demat Account ID:</strong> <code>${escapeHtml(account.id)}</code></p>
+    <p><strong>Created:</strong> ${new Date(account.createdAt).toLocaleString()}</p>
+    <p class="small">This is your demo demat dashboard. From here you could link to your stock/watchlist page or display portfolio information.</p>
+    <hr />
+    <p><strong>Quick actions:</strong></p>
+    <div class="row" style="margin-top:.5rem;">
+      <button id="copy-id">Copy ID</button>
+      <button id="goto-stocks" class="secondary">Go to Stocks</button>
+    </div>
+  `;
+  document.getElementById('copy-id').addEventListener('click', ()=>{
+    navigator.clipboard?.writeText(account.id).then(()=> alert('Demat ID copied to clipboard'));
+  });
+  document.getElementById('goto-stocks').addEventListener('click', ()=>{
+    window.location.href = 'index.html';
+  });
+  sessionStorage.setItem('demat_session', JSON.stringify({ id: account.id, name: account.name }));
+}
+
+/* -------------------------
+   Logout
+   ------------------------- */
+logoutBtn.addEventListener('click', ()=>{
+  sessionStorage.removeItem('demat_session');
+  document.getElementById('create-card').style.display = '';
+  document.getElementById('login-card').style.display = '';
+  dashboardCard.style.display = 'none';
+  loginId.value = '';
+  loginPass.value = '';
+});
+
+/* -------------------------
+   Session on load
+   ------------------------- */
+(function checkSessionOnLoad(){
+  try{
+    const s = JSON.parse(sessionStorage.getItem('demat_session')||'null');
+    if(s && s.id){
+      const accounts = loadAccounts();
+      const acc = accounts.find(a=>a.id === s.id);
+      if(acc) openDashboard(acc);
+    }
+  }catch(e){}
+})();
+
+/* -------------------------
+   Admin functionality
+   ------------------------- */
+adminLoginBtn.addEventListener('click', (ev)=>{
+  ev.preventDefault();
+  const entered = adminPassInput.value || '';
+  if(entered === ADMIN_PASSWORD){
+    // mark admin session (basic)
+    sessionStorage.setItem('demat_admin_session', JSON.stringify({ logged: true, ts: Date.now() }));
+    adminPassInput.value = '';
+    adminMsg.style.display = 'none';
+    adminLogoutBtn.style.display = '';
+    showAdminPanel(true);
+  } else {
+    adminMsg.style.display = 'block';
+    adminMsg.innerHTML = `<div class="danger">Incorrect admin password</div>`;
+  }
+});
+
+adminLogoutBtn.addEventListener('click', ()=>{
+  sessionStorage.removeItem('demat_admin_session');
+  adminLogoutBtn.style.display = 'none';
+  showAdminPanel(false);
+});
+
+/* show/hide admin panel and render table */
+function showAdminPanel(show){
+  adminPanel.style.display = show ? 'block' : 'none';
+  if(show) renderAccountsTable();
+}
+
+/* render table */
+function renderAccountsTable(){
+  const accounts = loadAccounts();
+  accountsTableBody.innerHTML = '';
+  if(accounts.length === 0){
+    accountsTableBody.innerHTML = `<tr><td colspan="7" class="muted">No accounts found.</td></tr>`;
+    return;
+  }
+  accounts.forEach((a, idx) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${idx+1}</td>
+      <td>${escapeHtml(a.name)}</td>
+      <td>${escapeHtml(a.email)}</td>
+      <td><code>${escapeHtml(a.id)}</code></td>
+      <td><code>${escapeHtml(a.password)}</code></td>
+      <td>${new Date(a.createdAt).toLocaleString()}</td>
+      <td class="actions">
+        <button class="link" data-id="${a.id}" aria-label="view">View</button>
+        <button class="link" data-delete="${a.id}" style="color:#ef4444;">Delete</button>
+      </td>
+    `;
+    accountsTableBody.appendChild(tr);
+  });
+
+  // attach actions
+  accountsTableBody.querySelectorAll('button[data-id]').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      const id = ev.currentTarget.getAttribute('data-id');
+      const acc = loadAccounts().find(x=>x.id===id);
+      if(acc){
+        alert(`Name: ${acc.name}\nEmail: ${acc.email}\nDemat ID: ${acc.id}\nPassword: ${acc.password}\nCreated: ${new Date(acc.createdAt).toLocaleString()}`);
+      }
+    });
+  });
+  accountsTableBody.querySelectorAll('button[data-delete]').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      const id = ev.currentTarget.getAttribute('data-delete');
+      if(!confirm('Delete this account? This action cannot be undone.')) return;
+      let arr = loadAccounts();
+      arr = arr.filter(x=>x.id !== id);
+      saveAccounts(arr);
+      renderAccountsTable();
+    });
+  });
+}
+
+/* Export CSV */
+exportCsvBtn.addEventListener('click', ()=>{
+  const accounts = loadAccounts();
+  if(accounts.length === 0){ alert('No accounts to export.'); return; }
+  const rows = [
+    ['Name','Email','DematID','Password','Created']
+  ];
+  accounts.forEach(a=> rows.push([a.name,a.email,a.id,a.password,a.createdAt]));
+  const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'demat_accounts_export.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+/* Delete all accounts */
+deleteAllBtn.addEventListener('click', ()=>{
+  if(!confirm('Delete ALL accounts from localStorage? This cannot be undone.')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  renderAccountsTable();
+});
+
+/* if admin session present on load, auto-open */
+(function adminSessionCheck(){
+  try{
+    const s = JSON.parse(sessionStorage.getItem('demat_admin_session')||'null');
+    if(s && s.logged){
+      adminLogoutBtn.style.display = '';
+      showAdminPanel(true);
+    }
+  }catch(e){}
+})();
+
+/* small escaping helper */
+function escapeHtml(s){
+  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+</script>
+</body>
+</html>
